@@ -93,7 +93,59 @@ KPCR                          : 0xffdff000 (CPU 0)
 
 - malfind identified several sections of suspicious memory
 - none of these were recognized by virustotal
-- an antivirus program is already active, unless it is some new, unrecognized malware or explicitly whitelisted the user, I assume there is no malware running.
+- procdump then md5sum, 3+ hits on virustotal
+- 1016 svchost.exe: Trojan Generic
+- 1232 svchost.exe: Trojan Generic
+- 1704 explorer.exe: Malicious?
+- 2996 firefox.exe: Trojan Kryptik
+- 3856 sol.exe: Trojan Crypt
+- 828 svchost.exe: Trojan Generic
+- the installed virus scanner does not appear very effective, several trojans were identified through procdump (but not malfind)
+
+<spoiler|procdump>
+
+```
+arccy@nevers» volatility procdump -D procdump -f memory.raw
+Volatility Foundation Volatility Framework 2.6.1
+Process(V) ImageBase  Name                 Result
+---------- ---------- -------------------- ------
+0x81fc8830 ---------- System               Error: PEB at 0x0 is unavailable (possibly due to paging)
+0x81e4e700 0x48580000 smss.exe             Error: ImageBaseAddress at 0x48580000 is unavailable (possibly due to paging)
+0x81e50020 0x4a680000 csrss.exe            Error: ImageBaseAddress at 0x4a680000 is unavailable (possibly due to paging)
+0x81e057c8 0x01000000 winlogon.exe         OK: executable.584.exe
+0x81e7dda0 0x01000000 services.exe         OK: executable.628.exe
+0x81e04750 0x01000000 lsass.exe            OK: executable.640.exe
+0x81dcba00 0x01000000 svchost.exe          OK: executable.828.exe
+0x81db2a48 0x01000000 svchost.exe          OK: executable.920.exe
+0x81d9bda0 0x01000000 svchost.exe          OK: executable.1016.exe
+0x81d1a7a8 0x01000000 svchost.exe          OK: executable.1232.exe
+0x81cf09f0 0x01000000 svchost.exe          Error: ImageBaseAddress at 0x1000000 is unavailable (possibly due to paging)
+0x81cdd4f0 0x01000000 spoolsv.exe          Error: ImageBaseAddress at 0x1000000 is unavailable (possibly due to paging)
+0x81caf308 0x01000000 svchost.exe          Error: ImageBaseAddress at 0x1000000 is unavailable (possibly due to paging)
+0x81c17020 0x01000000 alg.exe              Error: ImageBaseAddress at 0x1000000 is unavailable (possibly due to paging)
+0x81c10020 0x01000000 explorer.exe         OK: executable.1704.exe
+0x81b19b88 0x00400000 wuauclt.exe          Error: ImageBaseAddress at 0x400000 is unavailable (possibly due to paging)
+0x81d8b020 0x00400000 IEXPLORE.EXE         OK: executable.1108.exe
+0x81da8020 0x00400000 ctfmon.exe           Error: ImageBaseAddress at 0x400000 is unavailable (possibly due to paging)
+0x81bc3b40 0x00400000 IEXPLORE.EXE         Error: ImageBaseAddress at 0x400000 is unavailable (possibly due to paging)
+0x81c38708 0x01000000 sol.exe              OK: executable.3856.exe
+0x81ad0390 0x00400000 avgsvcx.exe          OK: executable.3872.exe
+0x81acd620 0x00400000 avguix.exe           OK: executable.1528.exe
+0x81a9fc68 0x00400000 AVGSvc.exe           OK: executable.2444.exe
+0x81a491f0 0x00400000 AVGUI.exe            OK: executable.2864.exe
+0x81968da0 0x00400000 TuneUpUtilities      OK: executable.2064.exe
+0x81a6f3b8 0x00400000 TuneUpUtilities      OK: executable.2316.exe
+0x81222020 0x00400000 avguix.exe           Error: ImageBaseAddress at 0x400000 is unavailable (possibly due to paging)
+0x8149b020 0x00400000 CCleaner.exe         OK: executable.2812.exe
+0x81454458 0x00400000 CCleaner.exe         Error: ImageBaseAddress at 0x400000 is unavailable (possibly due to paging)
+0x8120b020 0x00400000 IEXPLORE.EXE         OK: executable.1996.exe
+0x81416da0 0x00400000 firefox.exe          OK: executable.2996.exe
+0x81992da0 0x00400000 tor.exe              Error: ImageBaseAddress at 0x400000 is unavailable (possibly due to paging)
+0x81826360 0x01000000 taskmgr.exe          Error: ImageBaseAddress at 0x1000000 is unavailable (possibly due to paging)
+0x81a1d020 ---------- avgdiagex.exe        Error: PEB at 0x7ffdf000 is unavailable (possibly due to paging)
+```
+
+</spoiler>
 
 <spoiler|malfind>
 
@@ -598,7 +650,7 @@ Executables and (shared) library files ex dll s are most likely to contain inter
 
 ## Q8. Write a small paragraph of maximum 200 words about your findings Please remain objective
 
-The user has antivirus, CCleaner, explorer, and firefox/tor running on a 32-bit Windows XP Service Pack 3 system. No known malware was identified from the memory dump.
+The user has antivirus, CCleaner, explorer, and firefox/tor running on a 32-bit Windows XP Service Pack 3 system. Malfind identified several suspicious libraries but they came up clean on virustotal. Dumping out the process binaries, these were positively identified on virustotal as trojans, but not by the installed antivirus software on the computer.
 
 ## Q9. Read up on Scalpel and its features Explain what it does and how it works
 
@@ -611,21 +663,80 @@ Scalpel runs 2 passes to identify headers and footers from the file contents and
 ## Q10. Inspect the image manually and look for any artifacts Describe this process completely
 
 - mount -o loopback,ro,offset=32256 disk.img mount
+- browse through filesystem, realize I'm not experienced enough to identify anything interesting
+- there's a dave user with tor installed on his desktop, and antivirus installed in the system.
 
 ## Q11. Configure Scalpel and let it inspect the disk image What files are useful for your investigation? Note any interesting files you find
 
-- scalpel -o file disk.img
+- scalpel -o files disk.img
+- images (jpg, png, gif), skip videos (they take too much spave), doc, htm, pdf, pgp, txt, zip, pgp
+
+these are the most common file types for users (and also in the default scalpel config). Without supporting evidence it is difficult to determine which other files should be carved from the disk.
+
+```
+aWork queues built.  Workload:
+gif with header "\x47\x49\x46\x38\x37\x61" and footer "\x00\x3b" --> 59 files
+gif with header "\x47\x49\x46\x38\x39\x61" and footer "\x00\x00\x3b" --> 946 files
+jpg with header "\xff\xd8\xff\xe0\x00\x10" and footer "\xff\xd9" --> 849 files
+png with header "\x50\x4e\x47?" and footer "\xff\xfc\xfd\xfe" --> 2878 files
+avi with header "RIFF????AVI" and footer "" --> 229 files
+mov with header "????moov" and footer "" --> 24 files
+wav with header "RIFF????WAVE" and footer "" --> 328 files
+doc with header "\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1\x00\x00" and footer "\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1\x00\x00" --> 155 files
+doc with header "\xd0\xcf\x11\xe0\xa1\xb1" and footer "" --> 263 files
+pst with header "\x21\x42\x4e\xa5\x6f\xb5\xa6" and footer "" --> 0 files
+ost with header "\x21\x42\x44\x4e" and footer "" --> 3 files
+dbx with header "\xcf\xad\x12\xfe\xc5\xfd\x74\x6f" and footer "" --> 5 files
+idx with header "\x4a\x4d\x46\x39" and footer "" --> 4 files
+mbx with header "\x4a\x4d\x46\x36" and footer "" --> 3 files
+htm with header "<html" and footer "</html>" --> 2090 files
+pdf with header "%PDF" and footer "%EOF\x0d" --> 5 files
+pdf with header "%PDF" and footer "%EOF\x0a" --> 9 files
+zip with header "PK\x03\x04" and footer "\x3c\xac" --> 13900 files
+java with header "\xca\xfe\xba\xbe" and footer "" --> 30 files
+tgz with header "\x1f\x8b\x08\x08" and footer "" --> 19 files
+ogg with header "x4fx67x67x53x00x02" and footer "x4fx67x67x53x00x02" --> 0 files
+pgd with header "\x50\x47\x50\x64\x4d\x41\x49\x4e\x60\x01" and footer "" --> 0 files
+pgp with header "\x99\x00" and footer "" --> 347286 files
+pgp with header "\x95\x01" and footer "" --> 81929 files
+pgp with header "\x95\x00" and footer "" --> 195008 files
+pgp with header "\xa6\x00" and footer "" --> 161248 files
+txt with header "-----BEGIN\040PGP" and footer "" --> 0 files
+Carving files from image.
+Image file pass 2/2.
+disk.img: 100.0% |*****************************************************|    4.0 GB    00:00 ETAProcessing of image file complete. Cleaning up...
+Done.
+Scalpel is done, files carved = 807270, elapsed  = 1145 secs.
+```
+
+no valid pdf files were recovered, a large amount of pgp file were
+
+the 2 following images stood out from the other (system / preview / thumbnails)
+
+{{:2019-2020:students:sean_liao:ccf:00001257.jpg?direct&200}}
+{{:2019-2020:students:sean_liao:ccf:00001258.jpg?direct&200}}
 
 ## Q12. Investigate the techniques that have been used to hide files
+
+the pgp files recovered indicated that encryption was used to hide some files. CCleaner can be installed for many reasons, one of which is to securely delete files. It is unknown if it was used in this way.
 
 ## Q13. How would you securely hide or delete your information?
 
 To delete information, it is necessary to clear out any underlying data structures, typically by overwriting with new / zero / random data. This applies to both storage and memory.
 
-Hiding information can be accomplished by disguising the data to appear innocuous, hiding in unused space by the OS (at the risk of getting overwritten) or hiding in normally inaccessible parts of the system such as filesystem reserved space.
+Hiding information can be accomplished by disguising the data to appear innocuous, hiding information in encrypted form, hiding in unused space by the OS (at the risk of getting overwritten) or hiding in normally inaccessible parts of the system such as filesystem reserved space. Ex, steganography is explored in the next lab.
 
 ## Q14. Write a small paragraph of maximum 200 words about your findings Please remain objective
 
+There are a large amount of pgp encrypted (deleted?) files. 2 jpgs stood out, one was a newspaper clipping of osama bin laden, the other a group photo of a SNE field trip. The programs tor and ccleaner were installed.
+
 ## Q15. Did you find any traps that were interfering with your work?
 
+pgp encrypted files were undecipherable. Secure deletion may have lead to files being permanently deleted.
+
 ## Q16. Create a timeline of the evidence and explain what happened Include both the memory and the disk forensics Use a maximum of 400 words
+
+- psteal --source disk.img -o l2tcsv -w timeline.csv
+
+The obtained image(s) were of a Windows XP SP3 system with 536M of RAM on a NTFS filesystem. The system had AVG antivirus (2014-07-18 11:34:53) and CCleaner (2017-01-17 10:34:25) installed. The user had TOR installed on the desktop (2017-01-24 11:31:04). All were running at the time of acquisition (2017-02-12 13:37:02 UTC+0000).
+Several trojans were identified in memory, infecting firefox, explorer and svchost. Large amounts of pgp files were recovered from the disk image but not from the live filesystem. (May indicated previous ransomware infection?) No decryption keys were recovered. Additionally, recovered files included those related to the SNE masters program.
