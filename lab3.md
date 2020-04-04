@@ -42,6 +42,12 @@ DECIMAL       HEXADECIMAL     ENTROPY
 49135616      0x2EDC000       Falling entropy edge (0.477071)
 ```
 
+### Correction
+
+Compressed images (which this drive contains a lot of) are also sources of high entropy.
+The size size of the high entropy block corresponds more or less with the combined size of all the images on disk.
+Therefore it is ulikely that this disk contains a large encrypted block.
+
 ### 11 Try to find out if something else happened to the filesystem
 
 fdisk / partx doesn't locate any partition tables, kpartx does manage to mount it as a loopback device

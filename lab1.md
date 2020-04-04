@@ -41,6 +41,11 @@
 - md5sum v=8..28
 - psteal v=20190708
 
+### Correction
+
+sha512sum: 4725f73c18f4381be2546cf4ab50bdaad9908c83c9a3acfd86e3b27859a4411a88c148be2e030dd91f1c8d69601a9be526674234d0464ffbb1c25169586d7bb4
+block count = 20GiB (from the assignment that there is nothing past 19G) based on 512B block size
+
 ## Q5. Read about CAINE Linux and its features while waiting on the dump to finish
 
 ### a. Why would you use a Forensic distribution and what are the main differences between a regular distribution?
@@ -74,6 +79,10 @@ It also has default policies that are appropriate to forensic scenarios such as 
 - Obtain hash of hard drive contents
 - check hash of image against hash of hard drive
 
+### Correction
+
+step 2: obtain md5sum (sha512sum after correction) of first 20GiB
+
 ## Q8. Exchange HDDs and images with another team Verify the procedure that they used and the resulting image Write a small paragraph of max 200 words Write as if you were verifying the evidence gathering procedure for a court case
 
 - 2020-02-06 15:40:05 received hard disk and verified chain of custody
@@ -81,6 +90,10 @@ It also has default policies that are appropriate to forensic scenarios such as 
 - 2020-02-06 15:54:00 verified sha256sum=f252f689bd5aadc37ab6b76561dd3a1e84ec4449488ab45d21198e671a0c94d5
 
 On handover for verification, the drive was inspected and matched the descriptions in the chain of of custody document. Following standard forensic procedures, the drive was attached to a forensic workstation and the hash (sha256) of the first 20GiB of the drive was taken. This was verified to match the stated hash of the image produced by the other team.
+
+### Correction
+
+Other team was Hoang Huynh & Niels den Otter
 
 ## Q9. What kind of things would be less important during live acquisition?
 
@@ -106,6 +119,11 @@ medium priority:
 - hash existing disk state
 - attach and mount a storage drive to store the resulting image
 - clone and verify disk image with hash
+
+### Correction
+
+acquiring volatile data (eg in RAM) should also be in high priority and should be attempted if necessary
+before acquiring on disk data.
 
 ## Q12. Mount your image and make sure that it is mounted as read-only
 
@@ -197,6 +215,14 @@ It appears that the current operating system was installed on 01/26/2017 with th
 * dave_meknowswhat@protonmail.com, pass XKCDWindmillh@ck
 
 https://help.ubuntu.com/community/EncryptedPrivateDirectory#Recovering%20Your%20Data%20Manually
+
+### Correction
+
+grep commands:
+
+- find (unique) installed programs from apt logs
+- find when the encrypted file was created/modified (found when browsing the filesystem)
+- find email-like strings (good-enough regex to use with manual filtering)
 
 ## Q15. What would help to investigate this evidence further?
 
